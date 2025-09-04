@@ -1,4 +1,4 @@
-readme_content = """# Café Sales Data: Cleaning, Processing & Analysis  
+## Café Sales Data: Cleaning, Processing & Analysis  
 
 ## 📌 Project Overview  
 This project focuses on **data cleaning** and **exploratory data analysis (EDA)** using a simulated café sales dataset. The dataset was intentionally messy to practice real-world data wrangling skills, such as handling missing values, inconsistent entries, and incorrect data types.  
