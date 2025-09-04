@@ -126,7 +126,7 @@ cafe-sales-analysis/
 ## 🚀 How to Run the Project  
 1. Clone the repository:  
    ```bash
-   git clone (https://github.com/JuanCardonaB/Data-Cleaning-Analysis-Caf-Sales-Dataset.git)
+   git clone https://github.com/JuanCardonaB/Data-Cleaning-Analysis-Caf-Sales-Dataset.git
    cd cafe-sales-analysis
 
 2. Install dependencies:
