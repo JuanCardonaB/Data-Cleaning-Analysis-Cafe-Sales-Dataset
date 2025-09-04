@@ -48,7 +48,7 @@ class CafeSalesDataCleaner:
         logger.info("Initial data report generated")
         return report
     
-    def clean_transaction_id(self):
+    def clean_transaction_id(self) -> None:
         # Cleans the 'Transaction ID' column
         # Rule: Must be unique and non-null
         initial_null_count = self.df['Transaction ID'].isnull().sum()
@@ -70,7 +70,7 @@ class CafeSalesDataCleaner:
 
         logger.info("Transaction ID column cleaned.")
 
-    def clean_item(self):
+    def clean_item(self) -> None:
         # Cleans the 'Item' column
         # Rules: 
         # - Missing values → "Unknown Item"
@@ -100,7 +100,7 @@ class CafeSalesDataCleaner:
 
         logger.info("Item column cleaned.")
 
-    def clean_quantity(self):
+    def clean_quantity(self) -> None:
         # Cleans the 'Quantity' column
         # Rules:
         # - Missing values → impute with median
@@ -126,7 +126,7 @@ class CafeSalesDataCleaner:
 
         logger.info("Quantity column cleaned.")
 
-    def clean_price_per_unit(self):
+    def clean_price_per_unit(self) -> None:
         # Cleans the 'Price Per Unit' column
         # Rules:
         # - Missing values → impute with median per product
@@ -156,7 +156,7 @@ class CafeSalesDataCleaner:
 
         logger.info("Price Per Unit column cleaned.")
 
-    def clean_total_spent(self):
+    def clean_total_spent(self) -> None:
         # Cleans the 'Total Spent' column
         # Rules:
         # - Missing values and "ERROR" → recalculate as Quantity * Price Per Unit
@@ -174,7 +174,7 @@ class CafeSalesDataCleaner:
 
         logger.info("Total Spent column cleaned.")
 
-    def clean_payment_method(self):
+    def clean_payment_method(self) -> None:
         # Cleans the 'Payment Method' column
         # Rules:
         # - Missing values and "ERROR" → "Unknown"
@@ -212,8 +212,8 @@ class CafeSalesDataCleaner:
 
         logger.info("Payment Method column cleaned.")
 
-
-        
+    def clean_location(self) -> None:
+        pass
 
 def main():
     cleaner = CafeSalesDataCleaner("./data/dirty_cafe_sales.csv")
