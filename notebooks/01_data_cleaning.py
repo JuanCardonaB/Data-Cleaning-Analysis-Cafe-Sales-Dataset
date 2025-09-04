@@ -23,6 +23,9 @@ class CafeSalesDataCleaner:
         self.df = None
         self.cleaning_report = {}
 
+        self.valid_payment_methods = {'Cash', 'Credit Card', 'Digital Wallet', 'Unknown'}
+
+
     def load_data_csv(self) -> pd.DataFrame:
         # Load data from CSV file
         try:
@@ -171,17 +174,59 @@ class CafeSalesDataCleaner:
 
         logger.info("Total Spent column cleaned.")
 
+    def clean_payment_method(self):
+        # Cleans the 'Payment Method' column
+        # Rules:
+        # - Missing values and "ERROR" → "Unknown"
+        initial_null_count = self.df['Payment Method'].isnull().sum()
+        error_count = (
+            (self.df['Payment Method'].str.upper() == 'ERROR') |
+            (self.df['Payment Method'].str.upper() == 'UNKNOWN')
+        ).sum()
+
+        # Replace missing values
+        self.df['Payment Method'] = self.df['Payment Method'].fillna('Unknown')
+
+        # Replace problematic values
+        self.df['Payment Method'] = self.df['Payment Method'].str.upper().replace({
+            'ERROR': 'Unknown',
+            'UNKNOWN': 'Unknown'
+        })
+
+        # Standardize capitalization
+        self.df['Payment Method'] = self.df['Payment Method'].apply(
+            lambda x: x.title() if isinstance(x, str) and x != 'Unknown' else x
+        )
+
+        # Verify only valid methods remain
+        invalid_methods = set(self.df['Payment Method'].unique()) - self.valid_payment_methods
+        if invalid_methods:
+            logger.warning(f"Found invalid payment methods: {invalid_methods}. Replacing with 'Unknown'.")
+            self.df.loc[self.df['Payment Method'].isin(invalid_methods), 'Payment Method'] = 'Unknown'
+
+        self.cleaning_report["Payment Method"] = {
+            'nulls_filled': initial_null_count,
+            'errors_replaced': error_count,
+            'invalid_methods_replaced': len(invalid_methods)
+        }
+
+        logger.info("Payment Method column cleaned.")
+
+
+        
+
 def main():
     cleaner = CafeSalesDataCleaner("./data/dirty_cafe_sales.csv")
     cleaner.load_data_csv()
     # initial_report = cleaner.generate_initial_report()
     # print(initial_report)
 
-    cleaner.clean_transaction_id()
-    cleaner.clean_item()
-    cleaner.clean_quantity()
-    cleaner.clean_price_per_unit()
-    cleaner.clean_total_spent()
+    # cleaner.clean_transaction_id()
+    # cleaner.clean_item()
+    # cleaner.clean_quantity()
+    # cleaner.clean_price_per_unit()
+    # cleaner.clean_total_spent()
+    # cleaner.clean_payment_method()
 
     print(cleaner.df.iloc[10: 50])
 
