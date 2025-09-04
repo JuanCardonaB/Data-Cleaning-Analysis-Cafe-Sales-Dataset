@@ -153,8 +153,23 @@ class CafeSalesDataCleaner:
 
         logger.info("Price Per Unit column cleaned.")
 
+    def clean_total_spent(self):
+        # Cleans the 'Total Spent' column
+        # Rules:
+        # - Missing values and "ERROR" → recalculate as Quantity * Price Per Unit
+        initial_null_count = self.df['Total Spent'].isnull().sum()
+        error_count = (self.df['Total Spent'] == 'ERROR').sum() if 'Total Spent' in self.df.columns else 0
 
+        # Recalculate Total Spent
+        self.df['Total Spent'] = self.df['Quantity'] * self.df['Price Per Unit']
 
+        self.cleaning_report["Total Spent"] = {
+            'initial_nulls': initial_null_count,
+            'errors_replaced': error_count,
+            'recalculated_all': True
+        }
+
+        logger.info("Total Spent column cleaned.")
 
 def main():
     cleaner = CafeSalesDataCleaner("./data/dirty_cafe_sales.csv")
@@ -162,10 +177,13 @@ def main():
     # initial_report = cleaner.generate_initial_report()
     # print(initial_report)
 
-    # cleaner.clean_transaction_id()
-    # cleaner.clean_item()
-    # cleaner.clean_quantity()
+    cleaner.clean_transaction_id()
+    cleaner.clean_item()
+    cleaner.clean_quantity()
     cleaner.clean_price_per_unit()
+    cleaner.clean_total_spent()
+
+    print(cleaner.df.iloc[10: 50])
 
 if __name__ == "__main__":
     main()
