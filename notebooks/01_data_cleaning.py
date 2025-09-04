@@ -24,6 +24,8 @@ class CafeSalesDataCleaner:
         self.cleaning_report = {}
 
         self.valid_payment_methods = {'Cash', 'Credit Card', 'Digital Wallet', 'Unknown'}
+        self.valid_locations = {'In-store', 'Takeaway', 'Unknown'}
+
 
 
     def load_data_csv(self) -> pd.DataFrame:
@@ -213,7 +215,41 @@ class CafeSalesDataCleaner:
         logger.info("Payment Method column cleaned.")
 
     def clean_location(self) -> None:
-        pass
+        # Cleans the 'Location' column
+        # Rules:
+        # - Missing values and "UNKNOWN" → "Unknown"
+        # - Standardize capitalization
+        # - Validate valid categories
+        initial_null_count = self.df['Location'].isnull().sum()
+
+        # Replace missing values
+        self.df['Location'] = self.df['Location'].fillna('Unknown')
+
+        # Replace problematic values
+        unknown_count = (self.df['Location'].str.upper() == 'UNKNOWN').sum()
+        self.df['Location'] = self.df['Location'].str.upper().replace({
+            'UNKNOWN': 'Unknown',
+            'ERROR': 'Unknown'
+        })
+
+        # Standardize capitalization
+        self.df['Location'] = self.df['Location'].apply(
+            lambda x: x.title() if isinstance(x, str) and x != 'Unknown' else x
+        )
+
+        # Verify only valid locations remain
+        invalid_locations = set(self.df['Location'].unique()) - self.valid_location_categories
+        if invalid_locations:
+            logger.warning(f"Found invalid location categories: {invalid_locations}. Replacing with 'Unknown'.")
+            self.df.loc[self.df['Location'].isin(invalid_locations), 'Location'] = 'Unknown'
+
+        self.cleaning_report["Location"] = {
+            'nulls_filled': initial_null_count,
+            'errors_replaced': unknown_count,
+            'invalid_locations_replaced': len(invalid_locations)
+        }
+
+        logger.info("Location column cleaned.")
 
 def main():
     cleaner = CafeSalesDataCleaner("./data/dirty_cafe_sales.csv")
@@ -227,6 +263,7 @@ def main():
     # cleaner.clean_price_per_unit()
     # cleaner.clean_total_spent()
     # cleaner.clean_payment_method()
+    # cleaner.clean_location()
 
     print(cleaner.df.iloc[10: 50])
 
