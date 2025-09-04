@@ -102,7 +102,28 @@ class CafeSalesDataCleaner:
         # Rule: Must be positive integers
         # - Missing values → impute with median
         # - Convert to int
-        pass
+        initial_null_count = self.df['Quantity'].isnull().sum()
+
+        # # Convert to numeric, coercing errors to NaN
+        self.df['Quantity'] = pd.to_numeric(self.df['Quantity'], errors='coerce')
+
+        # Calculate median
+        median_quantity = self.df['Quantity'].median()
+
+        # Fill missing values with median
+        self.df['Quantity'] = self.df['Quantity'].fillna(median_quantity)
+
+        # Convert to integer
+        self.df['Quantity'] = self.df['Quantity'].astype(int)
+
+        self.cleaning_report["Quantity"] = {
+            'nulls_filled': initial_null_count,
+            'median_used': median_quantity
+        }
+
+        logger.info("Quantity column cleaned.")
+
+
 
 
 def main():
@@ -113,6 +134,7 @@ def main():
 
     # cleaner.clean_transaction_id()
     # cleaner.clean_item()
+    cleaner.clean_quantity()
 
 if __name__ == "__main__":
     main()
