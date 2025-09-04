@@ -69,7 +69,7 @@ class CafeSalesDataCleaner:
 
     def clean_item(self):
         # Cleans the 'Item' column
-        # Rule: 
+        # Rules: 
         # - Missing values → "Unknown Item"
         # - "UNKNOWN" → "Unknown Item"
         # - Standardize values (consistent capitalization)
@@ -99,7 +99,7 @@ class CafeSalesDataCleaner:
 
     def clean_quantity(self):
         # Cleans the 'Quantity' column
-        # Rule: Must be positive integers
+        # Rules:
         # - Missing values → impute with median
         # - Convert to int
         initial_null_count = self.df['Quantity'].isnull().sum()
@@ -123,6 +123,36 @@ class CafeSalesDataCleaner:
 
         logger.info("Quantity column cleaned.")
 
+    def clean_price_per_unit(self):
+        # Cleans the 'Price Per Unit' column
+        # Rules:
+        # - Missing values → impute with median per product
+        # - Convert to float
+        initial_null_count = self.df['Price Per Unit'].isnull().sum()
+
+        # Convert to numeric, coercing errors to NaN
+        self.df['Price Per Unit'] = pd.to_numeric(self.df['Price Per Unit'], errors='coerce')
+
+        # Calculate median per item
+        median_by_item = self.df.groupby('Item')['Price Per Unit'].median()
+
+        def impute_price(row):
+            if pd.isnull(row['Price Per Unit']):
+                return median_by_item.get(row['Item'], self.df['Price Per Unit'].median())
+            return row['Price Per Unit']
+        
+        self.df['Price Per Unit'] = self.df.apply(impute_price, axis=1)
+
+        # Convert to float
+        self.df['Price Per Unit'] = self.df['Price Per Unit'].astype(float)
+
+        self.cleaning_report["Price Per Unit"] = {
+            'nulls_filled': initial_null_count,
+             'median_by_item_used': True
+        }
+
+        logger.info("Price Per Unit column cleaned.")
+
 
 
 
@@ -134,7 +164,8 @@ def main():
 
     # cleaner.clean_transaction_id()
     # cleaner.clean_item()
-    cleaner.clean_quantity()
+    # cleaner.clean_quantity()
+    cleaner.clean_price_per_unit()
 
 if __name__ == "__main__":
     main()
