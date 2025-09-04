@@ -24,6 +24,8 @@ The dataset (`dirty_cafe_sales.csv`) contains **10,000 transactions** with the f
 | `Location`        | Transaction location (In-store, Takeaway, Unknown). |
 | `Transaction Date`| Date of transaction. |
 
+Dataset: https://www.kaggle.com/datasets/ahmedmohamed2003/cafe-sales-dirty-data-for-cleaning-training
+
 ---
 
 ## 🧹 Data Cleaning Process  
