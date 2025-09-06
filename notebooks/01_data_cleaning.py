@@ -251,6 +251,33 @@ class CafeSalesDataCleaner:
 
         logger.info("Location column cleaned.")
 
+    def clean_transaction_date(self) -> None:
+        # Cleans the 'Transaction Date' column
+        # Rules:
+        # - Missing values → impute with mode
+        # - Convert to datetime
+        initial_nulls = self.df['Transaction Date'].isnull().sum()
+
+        # Convert to datetime, coercing errors to NaT
+        self.df['Transaction Date'] = pd.to_datetime(
+            self.df['Transaction Date'], 
+            errors='coerce'
+        )
+
+        # Calculate mode
+        valid_dates = self.df['Transaction Date'].dropna()
+        if len(valid_dates) > 0:
+            median_date = valid_dates.median()
+            self.df['Transaction Date'] = self.df['Transaction Date'].fillna(median_date)
+
+        self.cleaning_report["Transaction Date"] = {
+            'nulls_filled': initial_nulls,
+            'median_used': median_date if len(valid_dates) > 0 else None
+        }
+
+        logger.info("Transaction Date column cleaned.")
+
+
 def main():
     cleaner = CafeSalesDataCleaner("./data/dirty_cafe_sales.csv")
     cleaner.load_data_csv()
@@ -264,6 +291,7 @@ def main():
     # cleaner.clean_total_spent()
     # cleaner.clean_payment_method()
     # cleaner.clean_location()
+    cleaner.clean_transaction_date()
 
     print(cleaner.df.iloc[10: 50])
 
