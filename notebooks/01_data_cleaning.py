@@ -40,11 +40,11 @@ class CafeSalesDataCleaner:
 
     def generate_initial_report(self) -> Dict[str, Any]:
         report = {
-            "num_rows": int(len(self.df)),  # Convertir a int nativo
-            "num_columns": int(len(self.df.columns)),  # Convertir a int nativo
-            "missing_values": {k: int(v) for k, v in self.df.isnull().sum().to_dict().items()},  # Convertir valores
-            "data_types": {k: str(v) for k, v in self.df.dtypes.to_dict().items()},  # Convertir dtypes a string
-            "duplicates": int(self.df.duplicated().sum())  # Convertir a int nativo
+            "num_rows": int(len(self.df)),
+            "num_columns": int(len(self.df.columns)),
+            "missing_values": {k: int(v) for k, v in self.df.isnull().sum().to_dict().items()},
+            "data_types": {k: str(v) for k, v in self.df.dtypes.to_dict().items()},
+            "duplicates": int(self.df.duplicated().sum())
         }
 
         logger.info("Initial data report generated")
