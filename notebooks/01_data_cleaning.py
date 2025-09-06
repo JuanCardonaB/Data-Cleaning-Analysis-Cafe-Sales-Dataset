@@ -24,7 +24,7 @@ class CafeSalesDataCleaner:
         self.cleaning_report = {}
 
         self.valid_payment_methods = {'Cash', 'Credit Card', 'Digital Wallet', 'Unknown'}
-        self.valid_locations = {'In-store', 'Takeaway', 'Unknown'}
+        self.valid_locations = {'In-Store', 'Takeaway', 'Unknown'}
 
 
 
@@ -40,11 +40,11 @@ class CafeSalesDataCleaner:
 
     def generate_initial_report(self) -> Dict[str, Any]:
         report = {
-            "num_rows": len(self.df),
-            "num_columns": len(self.df.columns),
-            "missing_values": self.df.isnull().sum().to_dict(),
-            "data_types": self.df.dtypes.to_dict(),
-            "duplicates": self.df.duplicated().sum()
+            "num_rows": int(len(self.df)),  # Convertir a int nativo
+            "num_columns": int(len(self.df.columns)),  # Convertir a int nativo
+            "missing_values": {k: int(v) for k, v in self.df.isnull().sum().to_dict().items()},  # Convertir valores
+            "data_types": {k: str(v) for k, v in self.df.dtypes.to_dict().items()},  # Convertir dtypes a string
+            "duplicates": int(self.df.duplicated().sum())  # Convertir a int nativo
         }
 
         logger.info("Initial data report generated")
@@ -238,7 +238,7 @@ class CafeSalesDataCleaner:
         )
 
         # Verify only valid locations remain
-        invalid_locations = set(self.df['Location'].unique()) - self.valid_location_categories
+        invalid_locations = set(self.df['Location'].unique()) - self.valid_locations
         if invalid_locations:
             logger.warning(f"Found invalid location categories: {invalid_locations}. Replacing with 'Unknown'.")
             self.df.loc[self.df['Location'].isin(invalid_locations), 'Location'] = 'Unknown'
@@ -277,23 +277,150 @@ class CafeSalesDataCleaner:
 
         logger.info("Transaction Date column cleaned.")
 
+    def validate_cleaned_data(self) -> Dict[str, Any]:
+        validation_report = {}
+
+        # Validate Transaction ID uniqueness and non-null
+        validation_report['transaction_id_unique'] = self.df['Transaction ID'].is_unique
+        validation_report['transaction_id_nulls'] = self.df['Transaction ID'].isnull().sum()
+
+        # Validate data types
+        validation_report['quantity_is_int'] = self.df['Quantity'].dtype == 'int64'
+        validation_report['price_is_float'] = self.df['Price Per Unit'].dtype == 'float64'
+        validation_report['transaction_date_is_datetime'] = pd.api.types.is_datetime64_any_dtype(self.df['Transaction Date'])
+
+        # Validate Categories
+        validation_report['valid_payment_methods'] = set(self.df['Payment Method'].unique()).issubset(self.valid_payment_methods)
+        validation_report['valid_locations'] = set(self.df['Location'].unique()).issubset(self.valid_locations)
+
+        # Validate Total Spent calculation
+        calculated_total = self.df['Quantity'] * self.df['Price Per Unit']
+        validation_report['total_spent_correct'] = np.allclose(self.df['Total Spent'], calculated_total, rtol=1e-10)
+        
+        return validation_report
+
+    def clean_all(self) -> None:
+        # Run all cleaning steps
+        # Returns the dataframe after cleaning
+        logger.info("Starting full data cleaning process.")
+
+        # Load data
+        self.load_data_csv()
+
+        # Initial report
+        initial_report = self.generate_initial_report()
+        logger.info(f"Initial Data Report: {initial_report['num_rows']} rows, {initial_report['num_columns']} columns")
+
+        # Clean each column
+        self.clean_transaction_id()
+        self.clean_item()
+        self.clean_quantity()
+        self.clean_price_per_unit()
+        self.clean_total_spent()
+        self.clean_payment_method()
+        self.clean_location()
+        self.clean_transaction_date()   
+
+        # Final validation
+        validation_report = self.validate_cleaned_data()
+
+        self.cleaning_report['initial_state'] = initial_report
+        self.cleaning_report['validation'] = validation_report
+        self.cleaning_report['final_state'] = self.df.shape
+
+        logger.info("Data cleaning process completed.")
+
+        return self.df
+
+    def save_cleaned_data(self, output_path: str) -> None:
+        # Save the cleaned dataframe to a CSV file
+        try:
+            output_path = Path(output_path)
+
+            # 🔧 CREAR directorio padre si no existe
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            self.df.to_csv(output_path, index=False)
+            logger.info(f"Cleaned data saved to {output_path}")
+        except Exception as e:
+            logger.error(f"Error saving cleaned data: {e}")
+            raise
+    
+    def save_cleaning_report(self, report_path: str) -> None:
+        # Save the cleaning report to a JSON file
+        try:
+            import json
+            report_path = Path(report_path)
+    
+            # 🔧 CREAR directorio padre si no existe
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+    
+            # 🔧 SOLUCIÓN MEJORADA: Manejar más tipos
+            def convert_numpy_types(obj):
+                """Convierte tipos numpy/pandas a tipos Python nativos para JSON"""
+                if hasattr(obj, 'item'):  # numpy scalars
+                    return obj.item()
+                elif hasattr(obj, 'isoformat'):  # datetime objects
+                    return obj.isoformat()
+                elif isinstance(obj, dict):
+                    return {k: convert_numpy_types(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [convert_numpy_types(item) for item in obj]
+                elif isinstance(obj, tuple):
+                    return tuple(convert_numpy_types(item) for item in obj)
+                elif isinstance(obj, (np.int64, np.int32, np.int16, np.int8)):
+                    return int(obj)
+                elif isinstance(obj, (np.float64, np.float32)):
+                    return float(obj)
+                elif isinstance(obj, np.bool_):
+                    return bool(obj)
+                elif pd.isna(obj):  # pandas NaN/NaT
+                    return None
+                # 🆕 NUEVO: Manejar pandas dtypes
+                elif hasattr(obj, 'name'):  # pandas dtype objects
+                    return str(obj)
+                # 🆕 NUEVO: Fallback para objetos no reconocidos
+                elif hasattr(obj, '__str__'):
+                    return str(obj)
+                else:
+                    return obj
+    
+            # Convertir el reporte completo
+            clean_report = convert_numpy_types(self.cleaning_report)
+    
+            # Guardar como JSON
+            with open(report_path, 'w') as f:
+                json.dump(clean_report, f, indent=4, ensure_ascii=False)
+    
+            logger.info(f"Cleaning report saved to {report_path}")
+    
+        except Exception as e:
+            logger.error(f"Error saving cleaning report: {e}")
+            raise
 
 def main():
-    cleaner = CafeSalesDataCleaner("./data/dirty_cafe_sales.csv")
-    cleaner.load_data_csv()
-    # initial_report = cleaner.generate_initial_report()
-    # print(initial_report)
+    input_file = "./data/raw/dirty_cafe_sales.csv"
+    output_file = "./data/processed/cleaned_cafe_sales.csv"
+    report_file = "./reports/cleaning_report.json"
 
-    # cleaner.clean_transaction_id()
-    # cleaner.clean_item()
-    # cleaner.clean_quantity()
-    # cleaner.clean_price_per_unit()
-    # cleaner.clean_total_spent()
-    # cleaner.clean_payment_method()
-    # cleaner.clean_location()
-    cleaner.clean_transaction_date()
+    try:
+        # Initialize cleaner
+        cleaner = CafeSalesDataCleaner(input_file)
 
-    print(cleaner.df.iloc[10: 50])
+        # Clean data
+        cleaned_df = cleaner.clean_all()
+
+        # Save cleaned data
+        cleaner.save_cleaned_data(output_file)
+
+        # Save report
+        cleaner.save_cleaning_report(report_file)
+        logger.info("\n\n\nData cleaning workflow completed successfully.\n")
+
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+        return
+
 
 if __name__ == "__main__":
     main()

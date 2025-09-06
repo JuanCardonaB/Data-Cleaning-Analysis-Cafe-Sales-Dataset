@@ -1,0 +1,77 @@
+{
+    "Transaction ID": {
+        "nulls_removed": 0,
+        "duplicates_removed": 0
+    },
+    "Item": {
+        "nulls_filled": 333,
+        "unknown_replaced": 344,
+        "unique_items": "10"
+    },
+    "Quantity": {
+        "nulls_filled": 138,
+        "median_used": 3.0
+    },
+    "Price Per Unit": {
+        "nulls_filled": 179,
+        "median_by_item_used": "True"
+    },
+    "Total Spent": {
+        "initial_nulls": 173,
+        "errors_replaced": 164,
+        "recalculated_all": "True"
+    },
+    "Payment Method": {
+        "nulls_filled": 2579,
+        "errors_replaced": 599,
+        "invalid_methods_replaced": "0"
+    },
+    "Location": {
+        "nulls_filled": 3265,
+        "errors_replaced": 3603,
+        "invalid_locations_replaced": "0"
+    },
+    "Transaction Date": {
+        "nulls_filled": 159,
+        "median_used": "2023-07-02T00:00:00"
+    },
+    "initial_state": {
+        "num_rows": "10000",
+        "num_columns": "8",
+        "missing_values": {
+            "Transaction ID": "0",
+            "Item": "333",
+            "Quantity": "138",
+            "Price Per Unit": "179",
+            "Total Spent": "173",
+            "Payment Method": "2579",
+            "Location": "3265",
+            "Transaction Date": "159"
+        },
+        "data_types": {
+            "Transaction ID": "object",
+            "Item": "object",
+            "Quantity": "object",
+            "Price Per Unit": "object",
+            "Total Spent": "object",
+            "Payment Method": "object",
+            "Location": "object",
+            "Transaction Date": "object"
+        },
+        "duplicates": "0"
+    },
+    "validation": {
+        "transaction_id_unique": "True",
+        "transaction_id_nulls": 0,
+        "quantity_is_int": "True",
+        "price_is_float": "True",
+        "transaction_date_is_datetime": "True",
+        "valid_payment_methods": "True",
+        "valid_locations": "True",
+        "total_spent_correct": "True"
+    },
+    "final_state": [
+        "10000",
+        "8"
+    ]
+}
