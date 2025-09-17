@@ -1,0 +1,138 @@
+{
+    "basic_stats": {
+        "total_sales": 89356.5,
+        "total_transactions": "10000",
+        "avg_transaction": 8.93565,
+        "total_items_sold": 30271,
+        "avg_items_per_transaction": 3.0271,
+        "avg_price_per_unit": 2.94795
+    },
+    "top_products": {
+        "by_quantity": [
+            {
+                "Item": "Coffee",
+                "Quantity": 3551
+            },
+            {
+                "Item": "Juice",
+                "Quantity": 3514
+            },
+            {
+                "Item": "Salad",
+                "Quantity": 3469
+            },
+            {
+                "Item": "Cake",
+                "Quantity": 3467
+            },
+            {
+                "Item": "Sandwich",
+                "Quantity": 3428
+            },
+            {
+                "Item": "Smoothie",
+                "Quantity": 3353
+            },
+            {
+                "Item": "Tea",
+                "Quantity": 3319
+            },
+            {
+                "Item": "Cookie",
+                "Quantity": 3249
+            },
+            {
+                "Item": "Unknown Item",
+                "Quantity": 2022
+            },
+            {
+                "Item": "Error",
+                "Quantity": 899
+            }
+        ],
+        "by_revenue": [
+            {
+                "Item": "Salad",
+                "Total Spent": 17345.0
+            },
+            {
+                "Item": "Sandwich",
+                "Total Spent": 13712.0
+            },
+            {
+                "Item": "Smoothie",
+                "Total Spent": 13412.0
+            },
+            {
+                "Item": "Juice",
+                "Total Spent": 10542.0
+            },
+            {
+                "Item": "Cake",
+                "Total Spent": 10401.0
+            },
+            {
+                "Item": "Coffee",
+                "Total Spent": 7102.0
+            },
+            {
+                "Item": "Unknown Item",
+                "Total Spent": 5957.0
+            },
+            {
+                "Item": "Tea",
+                "Total Spent": 4978.5
+            },
+            {
+                "Item": "Cookie",
+                "Total Spent": 3249.0
+            },
+            {
+                "Item": "Error",
+                "Total Spent": 2658.0
+            }
+        ]
+    },
+    "payment_methods": {
+        "transaction_counts": {
+            "Unknown": "3178",
+            "Digital Wallet": "2291",
+            "Credit Card": "2273",
+            "Cash": "2258"
+        },
+        "payments_revenue": {
+            "Unknown": "27934.5",
+            "Digital Wallet": "20534.0",
+            "Credit Card": "20487.0",
+            "Cash": "20401.0"
+        },
+        "payment_avg_ticket": {
+            "Cash": "9.034986713906111",
+            "Credit Card": "9.013198416190058",
+            "Digital Wallet": "8.9628982976866",
+            "Unknown": "8.789962240402769"
+        }
+    },
+    "location_analysis": {
+        "transaction_counts": {
+            "Unknown": "3961",
+            "Takeaway": "3022",
+            "In-Store": "3017"
+        },
+        "revenue_by_location": {
+            "Unknown": "35529.0",
+            "In-Store": "27174.0",
+            "Takeaway": "26653.5"
+        },
+        "avg_ticket_by_location": {
+            "In-Store": "9.006960556844547",
+            "Unknown": "8.969704620045443",
+            "Takeaway": "8.81982131039047"
+        },
+        "items_sold_by_location": {
+            "Unknown": "11956",
+            "Takeaway": "9176",
+            "In-Store": "9139"
+        }
+    }
+}
