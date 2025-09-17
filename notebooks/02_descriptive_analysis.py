@@ -6,7 +6,6 @@ import warnings
 from pathlib import Path
 from typing import Dict, Any
 import numpy as np
-import json
 
 plt.style.use('default')
 sns.set_palette("husl")
