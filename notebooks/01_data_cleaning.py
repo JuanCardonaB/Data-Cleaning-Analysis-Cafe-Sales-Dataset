@@ -14,10 +14,8 @@ logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-# Structure of the dataset
-# "Transaction ID" | "Item" | "Quantity" | "Price Per Unit" | "Total Spent" | "Payment Method" | "Location" | "Transaction Date"
 class CafeSalesDataCleaner:
-    # Class for cleaning cafe sales data
+    """Class for cleaning cafe sales data"""
     def __init__(self, filepath: str):
         self.file_path = Path(filepath)
         self.df = None
@@ -26,10 +24,12 @@ class CafeSalesDataCleaner:
         self.valid_payment_methods = {'Cash', 'Credit Card', 'Digital Wallet', 'Unknown'}
         self.valid_locations = {'In-Store', 'Takeaway', 'Unknown'}
 
-
-
     def load_data_csv(self) -> pd.DataFrame:
-        # Load data from CSV file
+        """Load data from CSV file
+        
+        Returns:
+            pd.DataFrame: DataFrame with loaded data
+        """
         try:
             self.df = pd.read_csv(self.file_path)
             logger.info(f"Data loaded successfully from {self.file_path}")
@@ -39,6 +39,11 @@ class CafeSalesDataCleaner:
             raise
 
     def generate_initial_report(self) -> Dict[str, Any]:
+        """Generate initial data quality report
+        
+        Returns:
+            Dict: Report with data statistics
+        """
         report = {
             "num_rows": int(len(self.df)),
             "num_columns": int(len(self.df.columns)),
@@ -51,15 +56,16 @@ class CafeSalesDataCleaner:
         return report
     
     def clean_transaction_id(self) -> None:
-        # Cleans the 'Transaction ID' column
-        # Rule: Must be unique and non-null
+        """Clean the Transaction ID column
+        
+        Rules: Must be unique and non-null
+        """
         initial_null_count = self.df['Transaction ID'].isnull().sum()
 
         if initial_null_count > 0:
             logger.info(f"Found {initial_null_count} null Transaction IDs.")
-            self.df = self.df.dropna(subset=['Transaction ID']) # Remove rows with null Transaction ID
+            self.df = self.df.dropna(subset=['Transaction ID'])
         
-        # Verify duplicates
         duplicates = self.df['Transaction ID'].duplicated().sum()
         if duplicates > 0:
             logger.info(f"Found {duplicates} duplicate Transaction IDs. Removing duplicates.")
@@ -73,23 +79,21 @@ class CafeSalesDataCleaner:
         logger.info("Transaction ID column cleaned.")
 
     def clean_item(self) -> None:
-        # Cleans the 'Item' column
-        # Rules: 
-        # - Missing values → "Unknown Item"
-        # - "UNKNOWN" → "Unknown Item"
-        # - Standardize values (consistent capitalization)
-
+        """Clean the Item column
+        
+        Rules: 
+        - Missing values → "Unknown Item"
+        - "UNKNOWN" → "Unknown Item"
+        - Standardize values (consistent capitalization)
+        """
         initial_null_count = self.df['Item'].isnull().sum()
         logger.info(f"Found {initial_null_count} null Item entries.")
 
-        # Replace missing values
         self.df['Item'] = self.df['Item'].fillna('Unknown Item')
 
-        # Replace "UNKNOWN" with "Unknown Item"
         unknown_count = (self.df['Item'].str.upper() == 'UNKNOWN').sum()
         self.df['Item'] = self.df['Item'].str.upper().replace('UNKNOWN', 'Unknown Item')
 
-        # Standardize capitalization
         self.df['Item'] = self.df['Item'].apply(
             lambda x: x.title() if isinstance(x, str) and x != 'Unknown Item' else x
         )
@@ -103,22 +107,20 @@ class CafeSalesDataCleaner:
         logger.info("Item column cleaned.")
 
     def clean_quantity(self) -> None:
-        # Cleans the 'Quantity' column
-        # Rules:
-        # - Missing values → impute with median
-        # - Convert to int
+        """Clean the Quantity column
+        
+        Rules:
+        - Missing values → impute with median
+        - Convert to int
+        """
         initial_null_count = self.df['Quantity'].isnull().sum()
 
-        # # Convert to numeric, coercing errors to NaN
         self.df['Quantity'] = pd.to_numeric(self.df['Quantity'], errors='coerce')
 
-        # Calculate median
         median_quantity = self.df['Quantity'].median()
 
-        # Fill missing values with median
         self.df['Quantity'] = self.df['Quantity'].fillna(median_quantity)
 
-        # Convert to integer
         self.df['Quantity'] = self.df['Quantity'].astype(int)
 
         self.cleaning_report["Quantity"] = {
@@ -129,16 +131,16 @@ class CafeSalesDataCleaner:
         logger.info("Quantity column cleaned.")
 
     def clean_price_per_unit(self) -> None:
-        # Cleans the 'Price Per Unit' column
-        # Rules:
-        # - Missing values → impute with median per product
-        # - Convert to float
+        """Clean the Price Per Unit column
+        
+        Rules:
+        - Missing values → impute with median per product
+        - Convert to float
+        """
         initial_null_count = self.df['Price Per Unit'].isnull().sum()
 
-        # Convert to numeric, coercing errors to NaN
         self.df['Price Per Unit'] = pd.to_numeric(self.df['Price Per Unit'], errors='coerce')
 
-        # Calculate median per item
         median_by_item = self.df.groupby('Item')['Price Per Unit'].median()
 
         def impute_price(row):
@@ -148,7 +150,6 @@ class CafeSalesDataCleaner:
         
         self.df['Price Per Unit'] = self.df.apply(impute_price, axis=1)
 
-        # Convert to float
         self.df['Price Per Unit'] = self.df['Price Per Unit'].astype(float)
 
         self.cleaning_report["Price Per Unit"] = {
@@ -159,13 +160,14 @@ class CafeSalesDataCleaner:
         logger.info("Price Per Unit column cleaned.")
 
     def clean_total_spent(self) -> None:
-        # Cleans the 'Total Spent' column
-        # Rules:
-        # - Missing values and "ERROR" → recalculate as Quantity * Price Per Unit
+        """Clean the Total Spent column
+        
+        Rules:
+        - Missing values and "ERROR" → recalculate as Quantity * Price Per Unit
+        """
         initial_null_count = self.df['Total Spent'].isnull().sum()
         error_count = (self.df['Total Spent'] == 'ERROR').sum() if 'Total Spent' in self.df.columns else 0
 
-        # Recalculate Total Spent
         self.df['Total Spent'] = self.df['Quantity'] * self.df['Price Per Unit']
 
         self.cleaning_report["Total Spent"] = {
@@ -177,30 +179,28 @@ class CafeSalesDataCleaner:
         logger.info("Total Spent column cleaned.")
 
     def clean_payment_method(self) -> None:
-        # Cleans the 'Payment Method' column
-        # Rules:
-        # - Missing values and "ERROR" → "Unknown"
+        """Clean the Payment Method column
+        
+        Rules:
+        - Missing values and "ERROR" → "Unknown"
+        """
         initial_null_count = self.df['Payment Method'].isnull().sum()
         error_count = (
             (self.df['Payment Method'].str.upper() == 'ERROR') |
             (self.df['Payment Method'].str.upper() == 'UNKNOWN')
         ).sum()
 
-        # Replace missing values
         self.df['Payment Method'] = self.df['Payment Method'].fillna('Unknown')
 
-        # Replace problematic values
         self.df['Payment Method'] = self.df['Payment Method'].str.upper().replace({
             'ERROR': 'Unknown',
             'UNKNOWN': 'Unknown'
         })
 
-        # Standardize capitalization
         self.df['Payment Method'] = self.df['Payment Method'].apply(
             lambda x: x.title() if isinstance(x, str) and x != 'Unknown' else x
         )
 
-        # Verify only valid methods remain
         invalid_methods = set(self.df['Payment Method'].unique()) - self.valid_payment_methods
         if invalid_methods:
             logger.warning(f"Found invalid payment methods: {invalid_methods}. Replacing with 'Unknown'.")
@@ -215,29 +215,27 @@ class CafeSalesDataCleaner:
         logger.info("Payment Method column cleaned.")
 
     def clean_location(self) -> None:
-        # Cleans the 'Location' column
-        # Rules:
-        # - Missing values and "UNKNOWN" → "Unknown"
-        # - Standardize capitalization
-        # - Validate valid categories
+        """Clean the Location column
+        
+        Rules:
+        - Missing values and "UNKNOWN" → "Unknown"
+        - Standardize capitalization
+        - Validate valid categories
+        """
         initial_null_count = self.df['Location'].isnull().sum()
 
-        # Replace missing values
         self.df['Location'] = self.df['Location'].fillna('Unknown')
 
-        # Replace problematic values
         unknown_count = (self.df['Location'].str.upper() == 'UNKNOWN').sum()
         self.df['Location'] = self.df['Location'].str.upper().replace({
             'UNKNOWN': 'Unknown',
             'ERROR': 'Unknown'
         })
 
-        # Standardize capitalization
         self.df['Location'] = self.df['Location'].apply(
             lambda x: x.title() if isinstance(x, str) and x != 'Unknown' else x
         )
 
-        # Verify only valid locations remain
         invalid_locations = set(self.df['Location'].unique()) - self.valid_locations
         if invalid_locations:
             logger.warning(f"Found invalid location categories: {invalid_locations}. Replacing with 'Unknown'.")
@@ -252,19 +250,19 @@ class CafeSalesDataCleaner:
         logger.info("Location column cleaned.")
 
     def clean_transaction_date(self) -> None:
-        # Cleans the 'Transaction Date' column
-        # Rules:
-        # - Missing values → impute with mode
-        # - Convert to datetime
+        """Clean the Transaction Date column
+        
+        Rules:
+        - Missing values → impute with mode
+        - Convert to datetime
+        """
         initial_nulls = self.df['Transaction Date'].isnull().sum()
 
-        # Convert to datetime, coercing errors to NaT
         self.df['Transaction Date'] = pd.to_datetime(
             self.df['Transaction Date'], 
             errors='coerce'
         )
 
-        # Calculate mode
         valid_dates = self.df['Transaction Date'].dropna()
         if len(valid_dates) > 0:
             median_date = valid_dates.median()
@@ -278,40 +276,41 @@ class CafeSalesDataCleaner:
         logger.info("Transaction Date column cleaned.")
 
     def validate_cleaned_data(self) -> Dict[str, Any]:
+        """Validate the cleaned data quality
+        
+        Returns:
+            Dict: Validation report
+        """
         validation_report = {}
 
-        # Validate Transaction ID uniqueness and non-null
         validation_report['transaction_id_unique'] = self.df['Transaction ID'].is_unique
         validation_report['transaction_id_nulls'] = self.df['Transaction ID'].isnull().sum()
 
-        # Validate data types
         validation_report['quantity_is_int'] = self.df['Quantity'].dtype == 'int64'
         validation_report['price_is_float'] = self.df['Price Per Unit'].dtype == 'float64'
         validation_report['transaction_date_is_datetime'] = pd.api.types.is_datetime64_any_dtype(self.df['Transaction Date'])
 
-        # Validate Categories
         validation_report['valid_payment_methods'] = set(self.df['Payment Method'].unique()).issubset(self.valid_payment_methods)
         validation_report['valid_locations'] = set(self.df['Location'].unique()).issubset(self.valid_locations)
 
-        # Validate Total Spent calculation
         calculated_total = self.df['Quantity'] * self.df['Price Per Unit']
         validation_report['total_spent_correct'] = np.allclose(self.df['Total Spent'], calculated_total, rtol=1e-10)
         
         return validation_report
 
     def clean_all(self) -> None:
-        # Run all cleaning steps
-        # Returns the dataframe after cleaning
+        """Run all cleaning steps
+        
+        Returns:
+            pd.DataFrame: The cleaned dataframe
+        """
         logger.info("Starting full data cleaning process.")
 
-        # Load data
         self.load_data_csv()
 
-        # Initial report
         initial_report = self.generate_initial_report()
         logger.info(f"Initial Data Report: {initial_report['num_rows']} rows, {initial_report['num_columns']} columns")
 
-        # Clean each column
         self.clean_transaction_id()
         self.clean_item()
         self.clean_quantity()
@@ -321,7 +320,6 @@ class CafeSalesDataCleaner:
         self.clean_location()
         self.clean_transaction_date()   
 
-        # Final validation
         validation_report = self.validate_cleaned_data()
 
         self.cleaning_report['initial_state'] = initial_report
@@ -333,11 +331,13 @@ class CafeSalesDataCleaner:
         return self.df
 
     def save_cleaned_data(self, output_path: str) -> None:
-        # Save the cleaned dataframe to a CSV file
+        """Save the cleaned dataframe to a CSV file
+        
+        Args:
+            output_path (str): Path to save the cleaned CSV file
+        """
         try:
             output_path = Path(output_path)
-
-            # 🔧 CREAR directorio padre si no existe
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
             self.df.to_csv(output_path, index=False)
@@ -347,20 +347,21 @@ class CafeSalesDataCleaner:
             raise
     
     def save_cleaning_report(self, report_path: str) -> None:
-        # Save the cleaning report to a JSON file
+        """Save the cleaning report to a JSON file
+        
+        Args:
+            report_path (str): Path to save the cleaning report
+        """
         try:
             import json
             report_path = Path(report_path)
-    
-            # 🔧 CREAR directorio padre si no existe
             report_path.parent.mkdir(parents=True, exist_ok=True)
     
-            # 🔧 SOLUCIÓN MEJORADA: Manejar más tipos
             def convert_numpy_types(obj):
-                """Convierte tipos numpy/pandas a tipos Python nativos para JSON"""
-                if hasattr(obj, 'item'):  # numpy scalars
+                """Convert numpy/pandas types to Python native types for JSON"""
+                if hasattr(obj, 'item'):
                     return obj.item()
-                elif hasattr(obj, 'isoformat'):  # datetime objects
+                elif hasattr(obj, 'isoformat'):
                     return obj.isoformat()
                 elif isinstance(obj, dict):
                     return {k: convert_numpy_types(v) for k, v in obj.items()}
@@ -374,21 +375,17 @@ class CafeSalesDataCleaner:
                     return float(obj)
                 elif isinstance(obj, np.bool_):
                     return bool(obj)
-                elif pd.isna(obj):  # pandas NaN/NaT
+                elif pd.isna(obj):
                     return None
-                # 🆕 NUEVO: Manejar pandas dtypes
-                elif hasattr(obj, 'name'):  # pandas dtype objects
+                elif hasattr(obj, 'name'):
                     return str(obj)
-                # 🆕 NUEVO: Fallback para objetos no reconocidos
                 elif hasattr(obj, '__str__'):
                     return str(obj)
                 else:
                     return obj
     
-            # Convertir el reporte completo
             clean_report = convert_numpy_types(self.cleaning_report)
     
-            # Guardar como JSON
             with open(report_path, 'w') as f:
                 json.dump(clean_report, f, indent=4, ensure_ascii=False)
     
@@ -399,21 +396,18 @@ class CafeSalesDataCleaner:
             raise
 
 def main():
+    """Main function to execute the data cleaning workflow"""
     input_file = "./data/raw/dirty_cafe_sales.csv"
     output_file = "./data/processed/cleaned_cafe_sales.csv"
     report_file = "./reports/cleaning_report.json"
 
     try:
-        # Initialize cleaner
         cleaner = CafeSalesDataCleaner(input_file)
 
-        # Clean data
         cleaned_df = cleaner.clean_all()
 
-        # Save cleaned data
         cleaner.save_cleaned_data(output_file)
 
-        # Save report
         cleaner.save_cleaning_report(report_file)
         logger.info("\n\n\nData cleaning workflow completed successfully.\n")
 
