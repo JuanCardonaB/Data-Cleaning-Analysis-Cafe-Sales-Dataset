@@ -125,14 +125,54 @@ class CafeSalesDescriptiveAnalysis:
 
         # STORE RESULTS
         payments_analysis = {
-            'transaction_counts': payment_counts,
-            'payments_revenue': payments_revenue,
-            'payment_avg_ticket': payment_avg_ticket
+            'transaction_counts': payment_counts.to_dict(),
+            'payments_revenue': payments_revenue.to_dict(),
+            'payment_avg_ticket': payment_avg_ticket.to_dict()
         }
 
         self.analysis_results['payment_methods'] = payments_analysis
         logger.info("Payment method analysis completed.")
         return payments_analysis
+
+    def location_analysis(self) -> Dict[str, Any]:
+        # Analyze sales distribution by location
+        # Returns:
+        #   Dict: Location statistics
+        
+        # TRANSACTIONS BY LOCATION
+        location_counts = self.df['Location'].value_counts()
+
+        # REVENUE BY LOCATION
+        location_revenue = (
+            self.df.groupby('Location')['Total Spent']
+            .sum()
+            .sort_values(ascending=False)
+        )
+
+        # AVERAGE TICKET BY LOCATION
+        location_avg_ticket = (
+            self.df.groupby('Location')['Total Spent']
+            .mean()
+            .sort_values(ascending=False)
+        )
+
+        location_items = (
+            self.df.groupby('Location')['Quantity']
+            .sum()
+            .sort_values(ascending=False)
+        )
+
+        location_analysis = {
+            'transaction_counts': location_counts.to_dict(),
+            'revenue_by_location': location_revenue.to_dict(),
+            'avg_ticket_by_location': location_avg_ticket.to_dict(),
+            'items_sold_by_location': location_items.to_dict()
+        }
+
+        self.analysis_results['location_analysis'] = location_analysis
+        logger.info("Location analysis completed.")
+        return location_analysis
+
 
 if __name__ == "__main__":
     data_path = './data/processed/cleaned_cafe_sales.csv'
