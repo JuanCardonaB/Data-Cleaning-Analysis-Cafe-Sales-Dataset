@@ -1,143 +1,68 @@
-## Café Sales Data: Cleaning, Processing & Analysis  
+# ☕ Café Sales Data Cleaning Project  
 
 ## 📌 Project Overview  
-This project focuses on **data cleaning** and **exploratory data analysis (EDA)** using a simulated café sales dataset. The dataset was intentionally messy to practice real-world data wrangling skills, such as handling missing values, inconsistent entries, and incorrect data types.  
-
-The main goals are:  
-- Perform **data cleaning** with clear, rule-based transformations.  
-- Conduct **exploratory analysis** to uncover insights about café sales.  
-- Build a **reproducible workflow** that demonstrates professional data analysis practices.  
+This project focuses **exclusively on data cleaning** using a simulated café sales dataset from Kaggle.  
+The goal is to practice real-world **data wrangling** techniques by transforming a messy dataset into a clean, reliable, and analysis-ready version.  
 
 ---
 
-## 📂 Dataset Description  
-The dataset (`dirty_cafe_sales.csv`) contains **10,000 transactions** with the following columns:  
+## 🧹 Data Cleaning Objectives  
+The dataset (`dirty_cafe_sales.csv`) contains **10,000 transactions** with common data issues such as missing values, inconsistent text, and incorrect data types.  
+The cleaning process aims to:  
 
-| Column            | Description |
-|-------------------|-------------|
-| `Transaction ID`  | Unique identifier for each transaction. |
-| `Item`            | Product purchased (e.g., Coffee, Sandwich, Cake). |
-| `Quantity`        | Number of items purchased. |
-| `Price Per Unit`  | Price of each unit of the product. |
-| `Total Spent`     | Total amount spent in the transaction. |
-| `Payment Method`  | Payment type (Cash, Credit Card, Digital Wallet, Unknown). |
-| `Location`        | Transaction location (In-store, Takeaway, Unknown). |
-| `Transaction Date`| Date of transaction. |
-
-Dataset: https://www.kaggle.com/datasets/ahmedmohamed2003/cafe-sales-dirty-data-for-cleaning-training
+- Handle **missing and inconsistent values**.  
+- Fix **incorrect data types**.  
+- Standardize text and categorical fields.  
+- Recalculate fields with logical errors.  
+- Produce a final **clean dataset** ready for analysis.  
 
 ---
 
-## 🧹 Data Cleaning Process  
-To ensure a high-quality dataset, the following cleaning rules were applied:  
+## ⚙️ Cleaning Rules Applied  
 
-1. **Transaction ID**  
-   - Kept as unique identifier.  
-
-2. **Item**  
-   - Missing values replaced with `"Unknown Item"`.  
-   - `"UNKNOWN"` standardized to `"Unknown Item"`.  
-   - Text normalized (consistent capitalization).  
-
-3. **Quantity**  
-   - Converted to integer.  
-   - Missing values imputed with the **median**.  
-
-4. **Price Per Unit**  
-   - Converted to float.  
-   - Missing values imputed with the **median per product** (`Item`).  
-
-5. **Total Spent**  
-   - Recalculated as `Quantity * Price Per Unit`.  
-   - `"ERROR"` entries fixed by recomputing.  
-
-6. **Payment Method**  
-   - `"ERROR"` and `"UNKNOWN"` replaced with `"Unknown"`.  
-   - Missing values replaced with `"Unknown"`.  
-
-7. **Location**  
-   - `"UNKNOWN"` replaced with `"Unknown"`.  
-   - Missing values replaced with `"Unknown"`.  
-
-8. **Transaction Date**  
-   - Converted to `datetime`.  
-   - Missing values imputed with the **median date**.  
+| Column | Cleaning Actions |
+|--------|------------------|
+| **Transaction ID** | Kept as unique identifier. |
+| **Item** | Missing values replaced with `"Unknown Item"`, standardized text. |
+| **Quantity** | Converted to integer, missing values imputed with median. |
+| **Price Per Unit** | Converted to float, missing values imputed with median per product. |
+| **Total Spent** | Recalculated as `Quantity * Price Per Unit`. |
+| **Payment Method** | Standardized values and replaced unknowns with `"Unknown"`. |
+| **Location** | Standardized and filled missing values with `"Unknown"`. |
+| **Transaction Date** | Converted to datetime and missing values imputed with median date. |
 
 ---
 
-## 📊 Exploratory Data Analysis (EDA)  
-After cleaning, several analyses were performed:  
-
-### 1. Descriptive Statistics  
-- Total revenue and average revenue per transaction.  
-- Distribution of `Quantity` and `Total Spent`.  
-
-### 2. Sales by Product  
-- Top-selling products by quantity.  
-- Highest revenue-generating products.  
-
-### 3. Payment Method Analysis  
-- Most common payment methods.  
-- Share of cash vs. digital payments.  
-
-### 4. Location Analysis  
-- Sales comparison between **In-store** and **Takeaway**.  
-
-### 5. Time Series Analysis  
-- Monthly sales trends.  
-- Peak transaction days.  
-
----
-
-## 📈 Key Insights  
-- **Coffee** was the most frequently purchased product.  
-- **Sandwiches** and **Cakes** generated significant revenue despite lower frequency.  
-- **Credit Card** was the most used payment method, followed by **Cash**.  
-- **In-store sales** dominated over Takeaway.  
-- Clear **monthly seasonality** was observed, with spikes during weekends.  
-
----
+## 🧾 Output  
+After cleaning, the resulting dataset is saved as:  
+`data/processed/cleaned_cafe_sales.csv`
 
 ## ⚙️ Tech Stack  
 - **Python 3**  
 - **pandas** (data manipulation)  
 - **numpy** (numerical operations)  
-- **matplotlib / seaborn** (visualizations)  
-- **jupyter notebook** (analysis workflow)  
+- **jupyter notebook** (cleaning workflow)  
 
 ---
 
-## 📁 Repository Structure  
-
-cafe-sales-analysis/
-│── data/
-│ ├── dirty_cafe_sales.csv # Raw dataset
-│ ├── clean_cafe_sales.csv # Cleaned dataset
-│
-│── notebooks/
-│ ├── 01_data_cleaning.ipynb # Cleaning process
-│ ├── 02_eda.ipynb # Exploratory data analysis
-│
-│── reports/
-│ ├── sales_insights.pdf # Final analysis report
-│
-│── README.md # Project documentation
-
 ## 🚀 How to Run the Project  
-1. Clone the repository:  
-   ```bash
-   git clone https://github.com/JuanCardonaB/Data-Cleaning-Analysis-Caf-Sales-Dataset.git
-   cd cafe-sales-analysis
+
+1. Clone the repository:
+   
+   ```git clone https://github.com/JuanCardonaB/Data-Cleaning-Analysis-Caf-Sales-Dataset.git```
+   
+   ``` cd Data-Cleaning-Analysis-Caf-Sales-Dataset```
 
 2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
 
-3. Open Jupyter Notebook and run the analysis:
-   ```bash
-   jupyter notebook
+   ```pip install -r requirements.txt```
 
-Author
-Juan Cardona
+
+---
+
+Author: Juan Cardona
+
 📧 Contact: juanjocarbol@gmail.com
-🔗 LinkedIn: (https://www.linkedin.com/in/juan-jose-cardona-bolivar/)
+
+🔗 LinkedIn: linkedin.com/in/juan-jose-cardona-bolivar
+
